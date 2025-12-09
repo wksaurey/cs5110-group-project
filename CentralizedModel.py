@@ -123,5 +123,5 @@ class Centralized(DecisionModel):
             "profit*": self.optimal_profit()
         }
 
-model = Centralized()
-print(model.summary())
+# model = Centralized()
+# print(model.summary())
