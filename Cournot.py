@@ -34,6 +34,7 @@ class Cournot(DecisionModel):
         self.p = self.calc_price()
         self.Q = self.qr + self.qs
 
+    # Calculate the Preservation effot, nu (same as paper)
     def calc_nu(self):
         parta = ((4*self.a*self.L2)*(self.a-self.b))/((3*self.a+self.b)*(self.L1*self.L3)**2)
         partb = ((self.a*(2-self.mu)+self.b*self.mu)*self.D)/((3*self.a+self.b)*self.L1*self.L3)
@@ -41,60 +42,48 @@ class Cournot(DecisionModel):
         partd = ((self.phi0*self.T**2)-(self.t**2*self.tau))/(self.L1*self.T**2)
         return parta - partb + partc - partd
 
+    # Calculate the ideal Wholesale Price (same as paper)
     def calc_w(self):
         part1 = (2*self.a*self.L2)/((3*self.a+self.b)*self.L1*self.L3)
         part2 = ((2*self.a+self.b)*(1-2*self.mu)*self.D)/(2*(self.a+self.b)*(3*self.a+self.b))
         return part1 - part2 +self.C
 
-    def total_profit(self, P,q1):
-        return (P-self.W)*q1 + (P-self.c)*(self.D-q1) + (self.W-self.C)*q-self.Cv
-
+    # Calculate ideal quantities for the retailer and supplier
     def get_quantities(self):
-        # Define symbols
-        q1, q2 = sp.symbols('q1 q2')
+        q1, q2 = sp.symbols('q1 q2') # Define symbols
 
-        # Market demand function (example: linear demand P = a - bQ)
-        # P = D - (q1 + q2)
+        # Profit functions - Price is linear P = a - bQ
+        pr = (self.D - self.slope * (q1 + q2))*q1 - self.W*q1
+        ps = (self.D - self.slope * (q1 + q2))*q2 - self.C*q2 + (self.W-self.C)*q1 -self. Cv
 
-        # Profit functions
-        # Profit = (Price * Quantity) - (Cost * Quantity)
-        pr = (self.D - self.slope * (q1 + q2)) * q1 - self.C * q1
-        ps = (self.D - self.slope * (q1 + q2)) * q2 - self.W * q2
-
-        # Derive best response functions by taking the first derivative of profit
-        # with respect to own quantity and setting it to zero.
-        # d(profit1)/dq1 = 0
-        # d(profit2)/dq2 = 0
+        # Take derivative of profit with respect to own quantity and set to zero -> dp/dq = 0
         br1 = sp.diff(pr, q1)
         br2 = sp.diff(ps, q2)
 
-        # Convert best response functions to numerical functions for fsolve
+        # Solve the system using fsolve
         br1_func = sp.lambdify((q1, q2), br1)
         br2_func = sp.lambdify((q1, q2), br2)
-
-        # Define a system of equations to solve for the Cournot equilibrium
         def cournot_equilibrium_equations(q):
             return [br1_func(q[0], q[1]), br2_func(q[0], q[1])]
-
-        # Solve the system using fsolve
-        initial_guess = [10, 10]  # Initial guess for quantities
+        
+        initial_guess = [10, 10]
         equilibrium_quantities = fsolve(cournot_equilibrium_equations, initial_guess)
-        qr = equilibrium_quantities[0].item()
-        qs = equilibrium_quantities[1].item()
+        qr = equilibrium_quantities[0].item() # extract from numpy
+        qs = equilibrium_quantities[1].item() # extract from numpy
 
         return qr, qs
 
-    # profit = p*qr - C*qr
+    # profit = p*qr - W*qr
     def retailer_profit(self):
         return self.p*self.qr - self.W*self.qr
 
-    # profit = p*qs - C*qs
+    # profit = p*qs - C*qs + (W-C)*qr
     def supplier_profit(self):
         return self.p*self.qs + (self.W - self.C)*self.qs - self.Cv
 
-    # Total profit = Q*p = Pi1+ Pi2
+    # Total profit will be the sum of the two minus the preservation effort cost
     def total_profit(self):
-        return self.supplier_profit() + self.retailer_profit()
+        return self.retailer_profit() + self.supplier_profit()
 
     # p = a - b*Q
     def calc_price(self):
@@ -108,11 +97,13 @@ class Cournot(DecisionModel):
         return {
             "P1*": self.retailer_profit(),
             "P2*": self.supplier_profit(),
-            "v*": self.calc_nu(),
-            "W" : self.calc_w(),
-            "profit*": self.total_profit()
+            "v*": self.nu,
+            "W" : self.W,
+            "profit": self.total_profit(),
+            "Q": self.output()
         }
 
 if __name__ == '__main__':
     cournot = Cournot()
     print(cournot.summary())
+    
