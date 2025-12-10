@@ -53,7 +53,7 @@ class Centralized(DecisionModel):
     
     def supplier_profit(self, P1, P2, v):
         #pi2 = (P2 − C) D2
-        return (P2 - self.C) * self.D2(P1, P2, v)
+        return (P2 - self.C) * self.D2(P1, P2, v) - self.lambda2 * v
 
     
     def total_profit(self, P1, P2, v):
@@ -116,10 +116,15 @@ class Centralized(DecisionModel):
         return term1 + term2 + term3
     
     def summary(self):
+        p1= self.optimal_retailer()
+        p2 = self.optimal_supplier()
+        v = self.optimal_v()
         return {
             "P1*": self.optimal_retailer(),
             "P2*": self.optimal_supplier(),
             "v*": self.optimal_v(),
+            "s_prof*": self.supplier_profit(p1, p2, v),
+            "r_prof*": self.retailer_profit(p1, p2, v),
             "profit*": self.optimal_profit()
         }
 

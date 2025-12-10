@@ -141,10 +141,17 @@ class StackelbergModel(DecisionModel):
             "P2*": self.optimal_supplier(),
             "W*": self.optimal_W(),
             "v*": self.optimal_v(),
-            # "supplier profit": self.optimal_supplier_profit(),
-            # "retailer profit": self.optimal_retailer_profit(),
+            "s_prof*": self.optimal_supplier_profit(),
+            "r_prof*": self.optimal_retailer_profit(),
             "profit*": self.optimal_profit()
         }
 
-# model = StackelbergModel()
-# print(model.summary())
+
+def print_items(stats):
+    for item in stats:
+        print(f'{item.ljust(8)} {round(stats[item], 2)}')
+
+
+if __name__ == '__main__':
+    stackelberg = StackelbergModel()
+    print_items(stackelberg.summary())

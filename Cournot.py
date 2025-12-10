@@ -17,7 +17,7 @@ class Cournot(DecisionModel):
     b: float = 0.1      # cross-price elasticity
     D: float = 100      # base market demand
     C: float = 60       # unit cost
-    slope: float = 1.0
+    slope: float = 10.0
     nu = None
     Cv = None
     W = None
@@ -95,12 +95,14 @@ class Cournot(DecisionModel):
 
     def summary(self):
         return {
-            "P1*": self.retailer_profit(),
-            "P2*": self.supplier_profit(),
-            "v*": self.nu,
+            "P1*": self.p,
+            "P2*": self.p,
             "W" : self.W,
-            "profit": self.total_profit(),
-            "Q": self.output()
+            "v*": self.nu,
+            "s_prof*": self.supplier_profit(),
+            "r_prof*": self.retailer_profit(),
+            "profit*": self.total_profit(),
+            # "Q": self.output()
         }
 
 if __name__ == '__main__':
